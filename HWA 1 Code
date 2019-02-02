@@ -1,1 +1,45 @@
+import pandas as pd
+import re
+
+
+
+
+divorce = pd.read_excel('stateDivorceRates.xlsx',
+                       skiprows=5,                       #skip 1st 5 rows of excel file
+                       skipfooter=13,                   
+                       na_values='---',                 #na values are "---" in excel
+                       usecols=22,                      # only use first 22 columns
+                       index_col=[0])                   # index column is 1st in excel file but add total to
+                                                        # keep it out of multiindex
+ 
+                                                       
+                                                
+
+
+# drop rows which have all null values (empty rows)
+divorce.dropna(how='all', inplace=True)        
+
+
+
+#1st level of multiindex) & put index to cols
+divorce = divorce.stack([0]).reset_index()
+
+
+
+
+
+
+
+### Use dataframe.rename() to rename neccessary columns by their index position
+divorce.rename(columns={divorce.columns[1] : 'Year',
+                       divorce.columns[2] : 'Divorce Rate'}
+                      ,inplace=True)    
+
+
+
+##### dataframe to excel file
+divorce.to_excel(excel_writer='divorce_clean.xls',                    #name the excel file "divorce_clean"
+                sheet_name='divorce',                                # name the sheet "divorce"
+                na_rep='null',                                      # treat n/a as null (some programs want specific style)
+                index=False)                                        # don't include pandas index
 
