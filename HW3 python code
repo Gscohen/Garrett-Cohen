@@ -1,0 +1,246 @@
+import pandas as pd
+
+
+######CLEAN DIVORCE RATE
+
+divorce = pd.read_excel('stateDivorceRates.xlsx',
+                       skiprows=5,                       #skip 1st 5 rows of excel file
+                       skipfooter=13,                   
+                       na_values='---',                 #na values are "---" in excel
+                       usecols=22,                      # only use first 22 columns
+                       index_col=[0])                   # index column is 1st in excel file but add total to
+                                                        # keep it out of multiindex
+ 
+                                                       
+                                                
+
+
+#drop rows which have all null values (empty rows)
+divorce.dropna(how='all', inplace=True)        
+
+
+
+#1st level of multiindex) & put index to cols
+divorce = divorce.stack([0]).reset_index()
+
+
+
+
+
+
+
+#Use dataframe.rename() to rename neccessary columns by their index position
+divorce.rename(columns={divorce.columns[1] : 'Year',
+                       divorce.columns[2] : 'Divorce Rate'}
+                      ,inplace=True)    
+
+
+
+#dataframe to excel file
+divorce.to_excel(excel_writer='divorce_clean2.xls',                    #name the excel file "divorce_clean"
+                sheet_name='divorce rate',                                # name the sheet "divorce"
+                na_rep='null',                                      # treat n/a as null (some programs want specific style)
+                index=False)                                        # don't include pandas index
+
+
+
+
+
+#####CLEAN MARRIAGE RATE
+
+#read the excel file/ preparing the data for pivot
+mRate= pd.read_excel("state-marriage-rates-90-95-99-17.xlsx",
+                     skiprows=5, # skip 1st 5 rows of excel file
+                     header=0,       # header is now in the first row
+                     skipfooter=8,  # skip last 8 rows of excel file
+                     index_col=[0]   # index columns are 1st in excel file 
+                     )
+
+#drop the first empty row
+mRate.drop(mRate.index[0],inplace=True)
+
+#pivot the table
+mRate=mRate.stack().reset_index()
+
+#rename the column's name
+mRate.rename(columns={"level_1": "Year", 0: "Rate"},inplace=True )  
+
+
+
+#write a new excel file and delete pandas index
+mRate.to_excel(excel_writer='marriage_clean2.xls',index=False)
+
+
+######CLEAN MIGRATION
+
+migrate = pd.read_excel('Migration.xltx',
+                       skiprows=8,                       #skip 1st 8 rows of excel file
+                       na_values= '',                    #na values are ' ' in excel
+                       usecols=10,                      # only use first 10 columns
+                       index_col=[0])                   # index column is 1st in excel file but add total to
+                                                        # keep it out of multiindex
+                                            
+
+migrate.ffill(inplace=True)
+
+#drop rows which have all null values (empty rows)
+migrate.dropna(how='all', inplace=True)        
+
+
+
+#1st level of multiindex) & put index to cols
+migrate = migrate.stack([0]).reset_index()
+
+
+
+
+
+
+
+
+
+#Use dataframe.rename() to rename neccessary columns by their index position
+migrate.rename(columns={migrate.columns[0] : 'Mobility Period',
+                        migrate.columns[1] : 'TypeOfMovement',
+                       migrate.columns[2] : 'Value'}
+                      ,inplace=True)    
+
+for string in migrate.TypeOfMovement:
+    if string == 'Unnamed: 1':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, '1 Year Old and Over')
+    elif string == 'Unnamed: 2':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Same Residence')
+    elif string == 'Unnamed: 3':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Total Movers')
+    elif string == 'Unnamed: 4':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Total')
+    elif string == 'Unnamed: 5':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Same Country')
+    elif string == 'Unnamed: 6':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Total')
+    elif string == 'Unnamed: 7':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Same State')
+    elif string == 'Unnamed: 8':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Different State')
+    elif string == 'Unnamed: 9':
+        migrate.TypeOfMovement = migrate.TypeOfMovement.replace(string, 'Movers from Abroad')
+        
+        
+
+
+
+#dataframe to excel file
+migrate.to_excel(excel_writer='migrate_clean2.xls',                    
+                sheet_name='migration',                                
+                na_rep='null',                          
+                index=False)
+
+
+#####CLEAN UNEMPLOYMENT
+
+#read the excel file/ preparing the data for pivot
+UnemploymentRate = pd.read_excel("UnemploymentRate.xls",
+                     skiprows=6,   #Skip 1st 6 rows of excel file
+                     usecols= range(1,5),
+                     na_values= 'N/A',
+                     index_col=[0,1,2]   #index columns are 1st, 2nd, 3rd in excel file 
+                     )
+
+
+
+#pivot the table
+UnemploymentRate=UnemploymentRate.stack().reset_index()
+
+
+#rename the column's name
+UnemploymentRate.rename(columns={"level_2": "Datatype", 0: "Data"},inplace=True )
+
+
+#Numbers are in percent (x100)
+UnemploymentRate['Data'] = UnemploymentRate['Data'].apply(lambda x: x*100)
+
+
+#write a new excel file and delete pandas index
+UnemploymentRate.to_excel(excel_writer='Unemployed_cleaned_file2.xls',na_rep = 'null',index=False) 
+
+
+
+######CLEAN HEALTH INSURANCE
+
+health = pd.read_excel('HealthInsurance.xls',
+                       skiprows=6,                       #skip 1st 6 rows of excel file
+                       na_values= 'N/A',                    
+                       usecols=range(1,8),               #uskip first column 
+                       index_col=[0,1,2,3,4,5])                   
+        
+
+
+health.dropna(how='all', inplace=True)  
+                                              
+
+health = health.stack([0]).reset_index()
+
+
+health.rename(columns={'level_6': '???',
+                       0 : 'Data'}
+                      ,inplace=True)  
+
+
+#dataframe to excel file
+health.to_excel(excel_writer='health_clean2.xls',                    #name the excel file "health_clean"
+                sheet_name='health',                                # name the sheet "health"
+                na_rep='null',                                      # treat n/a as null (some programs want specific style)
+                index=False)                                        # don't include pandas index
+
+
+
+
+#####CLEAN MEDIAN INCOME
+
+currentDollars = pd.read_excel('income.xls',
+                  skiprows=4,
+                  header=[0,1],
+                  skipfooter=56, #since the dataset has two parts(current&2017), we are only reading the 'current' part
+                  index_col=[0])
+
+#stack layers and then reset index
+currentDollars = currentDollars.stack([0,1]).reset_index()
+
+#rename column names
+currentDollars.rename(columns={"level_0":"State","State":"Year","level_2":"Income Statistic",0:"USD$"},inplace=True)
+
+for year in currentDollars.Year:
+    currentDollars.Year = currentDollars.Year.replace(year, str(year)[:4])
+
+
+
+
+#same as above,now we are doing '2017'
+LastYearDollars = pd.read_excel('income.xls',
+                  skiprows=59,    #since the dataset has two parts(current&2017), we are only reading the '2017' part
+                  header=[0,1],
+                  skipfooter=1,
+                  index_col=[0])
+
+LastYearDollars = LastYearDollars.stack([0,1]).reset_index()
+
+LastYearDollars.rename(columns={"level_0":"State","State":"Year","level_1":"Year","level_2":"Income Statistic",0:"USD$"},inplace=True)
+
+for year in LastYearDollars.Year:
+    LastYearDollars.Year = LastYearDollars.Year.replace(year, str(year)[:4])
+    
+    
+
+
+
+
+combinedDF = currentDollars.merge(LastYearDollars, left_on='Year', right_on = 'Year')
+combinedDF.head()
+
+combinedDF.rename(columns = {'USD$_x' : 'USD$_current',
+                             'USD$_y' : 'USD$_2017'}, inplace = True)
+
+combinedDF.to_excel(excel_writer = 'income_clean2.xlsx',
+                    sheet_name = 'Median Income',
+                    na_rep = 'null',
+                    index = False)
