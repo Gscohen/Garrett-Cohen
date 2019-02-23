@@ -244,3 +244,59 @@ combinedDF.to_excel(excel_writer = 'income_clean2.xlsx',
                     sheet_name = 'Median Income',
                     na_rep = 'null',
                     index = False)
+                    
+            
+######CLEAN CRIME 
+
+crime = pd.read_excel('violentCrime.xls',
+                   skiprows=4,                      # skip 1st 5 rows of excel file
+                   header=[0],  # header is now in the first and 2nd row
+                   index_col=[0],  # index only includes 1st column
+                   skipfooter = 105,
+                   na_values = '(NA)',
+                   usecols = 52
+                   )
+
+crime2 = pd.read_excel('propertyCrime.xls',
+                   skiprows=4,                      # skip 1st 5 rows of excel file
+                   header=[0],  # header is now in the first and 2nd row
+                   index_col=[0],  # index only includes 1st column
+                   skipfooter = 105,
+                   na_values = '(NA)',
+                   usecols = 52
+                   )
+
+
+
+
+crime = crime.stack([0]).reset_index()      
+
+crime2 = crime2.stack([0]).reset_index()
+
+
+crime.rename(columns={crime.columns[0] :"Year", # rename first two columns
+                      crime.columns[1]:"State",
+                      crime.columns[2] : 'Violent'},inplace=True)
+
+crime2.rename(columns={crime2.columns[0] :"Year", # rename first two columns
+                      crime2.columns[1]:"State",
+                      crime2.columns[2] : 'Property'},inplace=True)
+
+
+
+
+#combinedDF = pd.merge(crime, crime2, how = 'left' )
+#combinedDF = crime.merge(crime2, left_on='Year', right_on = 'Year')
+
+
+combinedDF = pd.concat([crime, crime2], axis=1)
+
+
+combinedDF.head()
+
+
+combinedDF.to_excel(excel_writer='crime_output2.xlsx',  # write to the given file
+                  sheet_name='crime',
+                  na_rep = 'null',
+                  index = False
+                   )                
